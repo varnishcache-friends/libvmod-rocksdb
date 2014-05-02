@@ -53,80 +53,97 @@ vmod_free(void *priv)
 	struct vmod_leveldb *v;
 
 	CAST_OBJ_NOTNULL(v, priv, VMOD_LEVELDB_MAGIC);
-	leveldb_close(v->db);
+
+	if (v->db)
+		leveldb_close(v->db);
 	leveldb_options_destroy(v->opt);
 	leveldb_readoptions_destroy(v->rdopt);
 	leveldb_writeoptions_destroy(v->wropt);
+
 	FREE_OBJ(v);
+}
+
+static struct vmod_leveldb *
+vmod_getv(struct vmod_priv *priv)
+{
+	struct vmod_leveldb *v;
+
+	AN(priv);
+
+	if (priv->priv) {
+		CAST_OBJ_NOTNULL(v, priv->priv, VMOD_LEVELDB_MAGIC);
+		return (v);
+	}
+
+	ALLOC_OBJ(v, VMOD_LEVELDB_MAGIC);
+	AN(v);
+
+	v->opt = leveldb_options_create();
+	v->rdopt = leveldb_readoptions_create();
+	v->wropt = leveldb_writeoptions_create();
+
+	priv->free = vmod_free;
+	priv->priv = v;
+
+	return (v);
+}
+
+VCL_VOID __match_proto__(td_leveldb_create_if_missing)
+vmod_create_if_missing(const struct vrt_ctx *ctx, struct vmod_priv *priv,
+    VCL_BOOL enable)
+{
+	struct vmod_leveldb *v;
+
+	v = vmod_getv(priv);
+	leveldb_options_set_create_if_missing(v->opt, enable);
 }
 
 VCL_VOID __match_proto__(td_leveldb_open)
 vmod_open(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING name)
 {
 	struct vmod_leveldb *v;
-	leveldb_options_t *opt;
-	leveldb_t *db;
-	char *errstr;
+	char *error = NULL;
 
 	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
-	AN(priv);
 
-	if (priv->priv != NULL) {
-		CAST_OBJ_NOTNULL(v, priv->priv, VMOD_LEVELDB_MAGIC);
+	v = vmod_getv(priv);
+	if (v->db)
 		return;
+
+	v->db = leveldb_open(v->opt, name, &error);
+	if (error) {
+		/* Make the error available */
+		leveldb_free(error);
 	}
-
-	opt = leveldb_options_create();
-	leveldb_options_set_create_if_missing(opt, 1);
-
-	errstr = NULL;
-	db = leveldb_open(opt, name, &errstr);
-	if (errstr != NULL) {
-		free(errstr);
-		leveldb_options_destroy(opt);
-		return;
-	}
-
-	ALLOC_OBJ(v, VMOD_LEVELDB_MAGIC);
-	AN(v);
-	v->db = db;
-	v->opt = opt;
-	v->rdopt = leveldb_readoptions_create();
-	v->wropt = leveldb_writeoptions_create();
-	priv->free = vmod_free;
-	priv->priv = v;
 }
 
 VCL_STRING __match_proto__(td_leveldb_get)
 vmod_get(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 {
 	struct vmod_leveldb *v;
-	char *errstr, *p;
-	char *val;
+	char *error = NULL;
+	char *p, *value;
 	size_t len;
 
 	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
-	AN(priv);
 
-	if (priv->priv == NULL) {
-		/* error */
-		return;
+	v = vmod_getv(priv);
+	if (!v->db) {
+		/* Make the error available */
+		return (NULL);
 	}
 
-	CAST_OBJ_NOTNULL(v, priv->priv, VMOD_LEVELDB_MAGIC);
-
-	errstr = NULL;
-	val = leveldb_get(v->db, v->rdopt, key, strlen(key), &len, &errstr);
-	if (errstr != NULL) {
-		p = WS_Copy(ctx->ws, errstr, -1);
-		free(errstr);
-	} else if (len > 0) {
+	value = leveldb_get(v->db, v->rdopt, key, strlen(key), &len, &error);
+	if (error) {
+		p = WS_Copy(ctx->ws, error, -1);
+		leveldb_free(error);
+	} else if (value) {
 		p = WS_Alloc(ctx->ws, len + 1);
-		if (p != NULL) {
-			memcpy(p, val, len);
+		if (p) {
+			memcpy(p, value, len);
 			p[len] = '\0';
 		}
-		free(val);
+		leveldb_free(value);
 	} else
 		p = NULL;
 
@@ -138,41 +155,43 @@ vmod_put(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
     VCL_STRING value)
 {
 	struct vmod_leveldb *v;
-	char *errstr;
+	char *error = NULL;
 
 	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
-	AN(priv);
 
-	if (priv->priv == NULL)
+	v = vmod_getv(priv);
+	if (!v->db) {
+		/* Make the error available */
 		return;
+	}
 
-	CAST_OBJ_NOTNULL(v, priv->priv, VMOD_LEVELDB_MAGIC);
-
-	errstr = NULL;
-	leveldb_put(v->db, v->wropt, key, strlen(key), value,
-	    strlen(value), &errstr);
-	if (errstr != NULL)
-		free(errstr);
+	leveldb_put(v->db, v->wropt, key, strlen(key), value, strlen(value),
+	    &error);
+	if (error) {
+		/* Make the error available */
+		leveldb_free(error);
+	}
 }
 
 VCL_VOID __match_proto__(td_leveldb_delete)
 vmod_delete(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 {
 	struct vmod_leveldb *v;
-	char *errstr;
+	char *error = NULL;
 
 	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
-	AN(priv);
 
-	if (priv->priv == NULL)
+	v = vmod_getv(priv);
+	if (!v->db) {
+		/* Make the error available */
 		return;
+	}
 
-	CAST_OBJ_NOTNULL(v, priv->priv, VMOD_LEVELDB_MAGIC);
-
-	errstr = NULL;
-	leveldb_delete(v->db, v->wropt, key, strlen(key), &errstr);
-	if (errstr != NULL)
-		free(errstr);
+	leveldb_delete(v->db, v->wropt, key, strlen(key), &error);
+	if (error) {
+		/* Make the error available */
+		leveldb_free(error);
+	}
 }
 
 VCL_VOID __match_proto__(td_leveldb_close)
@@ -181,7 +200,7 @@ vmod_close(const struct vrt_ctx *ctx, struct vmod_priv *priv)
 	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
 	AN(priv);
 
-	if (priv->priv != NULL) {
+	if (priv->priv) {
 		vmod_free(priv->priv);
 		priv->priv = NULL;
 		priv->free = NULL;

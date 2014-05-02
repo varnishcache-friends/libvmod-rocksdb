@@ -33,6 +33,7 @@ varnish v1 -vcl+backend {
 	import leveldb from "${vmod_topbuild}/src/.libs/libvmod_leveldb.so";
 
 	sub vcl_init {
+		leveldb.create_if_missing(true);
 		leveldb.open("${tmpdir}/leveldb");
 	}
 
