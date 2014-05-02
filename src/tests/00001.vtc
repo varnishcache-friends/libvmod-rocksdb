@@ -16,6 +16,15 @@ server s1 {
 	txresp
 
 	rxreq
+	expect req.url == "/del"
+	txresp
+
+	rxreq
+	expect req.url == "/get"
+	expect req.http.r == ""
+	txresp
+
+	rxreq
 	expect req.url == "/close"
 	txresp
 } -start
@@ -32,6 +41,8 @@ varnish v1 -vcl+backend {
 			set req.http.r = leveldb.get("foo");
 		} else if (req.url ~ "^/put") {
 			leveldb.put("foo", "bar");
+		} else if (req.url ~ "^/del") {
+			leveldb.delete("foo");
 		} else if (req.url ~ "^/close") {
 			leveldb.close();
 		}
@@ -43,6 +54,10 @@ client c1 {
 	txreq -url /get
 	rxresp
 	txreq -url /put
+	rxresp
+	txreq -url /get
+	rxresp
+	txreq -url /del
 	rxresp
 	txreq -url /get
 	rxresp

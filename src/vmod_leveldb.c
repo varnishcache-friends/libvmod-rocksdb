@@ -155,6 +155,26 @@ vmod_put(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
 		free(errstr);
 }
 
+VCL_VOID __match_proto__(td_leveldb_delete)
+vmod_delete(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
+{
+	struct vmod_leveldb *v;
+	char *errstr;
+
+	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	AN(priv);
+
+	if (priv->priv == NULL)
+		return;
+
+	CAST_OBJ_NOTNULL(v, priv->priv, VMOD_LEVELDB_MAGIC);
+
+	errstr = NULL;
+	leveldb_delete(v->db, v->wropt, key, strlen(key), &errstr);
+	if (errstr != NULL)
+		free(errstr);
+}
+
 VCL_VOID __match_proto__(td_leveldb_close)
 vmod_close(const struct vrt_ctx *ctx, struct vmod_priv *priv)
 {

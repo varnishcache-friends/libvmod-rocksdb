@@ -29,4 +29,5 @@ $Module leveldb 3 leveldb
 $Function VOID open(PRIV_VCL, STRING)
 $Function STRING get(PRIV_VCL, STRING)
 $Function VOID put(PRIV_VCL, STRING, STRING)
+$Function VOID delete(PRIV_VCL, STRING)
 $Function VOID close(PRIV_VCL)
