@@ -1,0 +1,51 @@
+varnishtest "Test db operations"
+
+server s1 {
+	rxreq
+	expect req.url == "/get"
+	expect req.http.r == ""
+	txresp
+
+	rxreq
+	expect req.url == "/put"
+	txresp
+
+	rxreq
+	expect req.url == "/get"
+	expect req.http.r == "bar"
+	txresp
+
+	rxreq
+	expect req.url == "/close"
+	txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import leveldb from "${vmod_topbuild}/src/.libs/libvmod_leveldb.so";
+
+	sub vcl_init {
+		leveldb.open("${tmpdir}/leveldb");
+	}
+
+	sub vcl_recv {
+		if (req.url ~ "^/get") {
+			set req.http.r = leveldb.get("foo");
+		} else if (req.url ~ "^/put") {
+			leveldb.put("foo", "bar");
+		} else if (req.url ~ "^/close") {
+			leveldb.close();
+		}
+		return (pass);
+	}
+} -start
+
+client c1 {
+	txreq -url /get
+	rxresp
+	txreq -url /put
+	rxresp
+	txreq -url /get
+	rxresp
+	txreq -url /close
+	rxresp
+} -run
