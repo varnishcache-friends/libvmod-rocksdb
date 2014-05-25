@@ -94,6 +94,8 @@ vmod_create_if_missing(const struct vrt_ctx *ctx, struct vmod_priv *priv,
 {
 	struct vmod_leveldb *v;
 
+	(void)ctx;
+
 	v = vmod_getv(priv);
 	leveldb_options_set_create_if_missing(v->opt, enable);
 }
