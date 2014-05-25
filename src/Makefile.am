@@ -1,11 +1,10 @@
-AM_CPPFLAGS = @VMOD_INCLUDES@
 
-vmoddir = @VMOD_DIR@
+vmoddir = $(VMOD_DIR)
 vmod_LTLIBRARIES = libvmod_leveldb.la
 
-libvmod_leveldb_la_CFLAGS =
+libvmod_leveldb_la_CFLAGS = $(VMOD_INCLUDES)
 libvmod_leveldb_la_LDFLAGS = -module -export-dynamic -avoid-version -shared \
-	@LIBS@
+	$(LIBS)
 
 libvmod_leveldb_la_SOURCES = \
 	vmod_leveldb.c
@@ -19,14 +18,14 @@ VMOD_TESTS = tests/*.vtc
 
 $(libvmod_leveldb_la_OBJECTS): vcc_if.h
 
-vcc_if.c vcc_if.h vmod_leveldb.man.rst: @VMODTOOL@ $(top_srcdir)/src/vmod.vcc
-	@PYTHON@ @VMODTOOL@ $(top_srcdir)/src/vmod.vcc
+vcc_if.c vcc_if.h vmod_leveldb.man.rst: $(VMODTOOL) $(top_srcdir)/src/vmod.vcc
+	$(PYTHON) $(VMODTOOL) $(top_srcdir)/src/vmod.vcc
 
 vmod_leveldb.3: vmod_leveldb.man.rst
 	${RST2MAN} $? $@
 
 check:
-	@VARNISHTEST@ -Dvarnishd=@VARNISHD@ \
+	$(VARNISHTEST) -Dvarnishd=$(VARNISHD) \
 	    -Dvmod_topbuild=$(abs_top_builddir) $(VMOD_TESTS)
 
 EXTRA_DIST = vmod.vcc \
