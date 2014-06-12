@@ -33,5 +33,5 @@ EXTRA_DIST = vmod.vcc \
 
 CLEANFILES = $(builddir)/vcc_if.c \
 	$(builddir)/vcc_if.h \
-	$(builddir)/vmod_leveldb.rst \
-	$(builddir)/vmod_leveldb.man.rst
+	$(builddir)/vmod_leveldb.man.rst \
+	$(builddir)/vmod_leveldb.rst
