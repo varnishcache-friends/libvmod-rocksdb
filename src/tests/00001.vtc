@@ -1,4 +1,4 @@
-varnishtest "Test db operations"
+varnishtest "Test leveldb operations"
 
 server s1 {
 	rxreq
@@ -8,6 +8,24 @@ server s1 {
 
 	rxreq
 	expect req.url == "/put"
+	txresp
+
+	rxreq
+	expect req.url == "/get"
+	expect req.http.r == "bar"
+	txresp
+
+	rxreq
+	expect req.url == "/close"
+	txresp
+
+	rxreq
+	expect req.url == "/get"
+	expect req.http.r == ""
+	txresp
+
+	rxreq
+	expect req.url == "/open"
 	txresp
 
 	rxreq
@@ -38,7 +56,9 @@ varnish v1 -vcl+backend {
 	}
 
 	sub vcl_recv {
-		if (req.url ~ "^/get") {
+		if (req.url ~ "^/open") {
+			leveldb.open("${tmpdir}/leveldb");
+		} else if (req.url ~ "^/get") {
 			set req.http.r = leveldb.get("foo");
 		} else if (req.url ~ "^/put") {
 			leveldb.put("foo", "bar");
@@ -58,10 +78,16 @@ client c1 {
 	rxresp
 	txreq -url /get
 	rxresp
-	txreq -url /del
+	txreq -url /close
 	rxresp
 	txreq -url /get
 	rxresp
-	txreq -url /close
+	txreq -url /open
+	rxresp
+	txreq -url /get
+	rxresp
+	txreq -url /del
+	rxresp
+	txreq -url /get
 	rxresp
 } -run
