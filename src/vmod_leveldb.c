@@ -106,7 +106,7 @@ vmod_open(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING name)
 	struct vmod_leveldb *v;
 	char *error = NULL;
 
-	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	(void)ctx;
 
 	v = vmod_getv(priv);
 	if (v->db)
@@ -159,7 +159,7 @@ vmod_put(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key,
 	struct vmod_leveldb *v;
 	char *error = NULL;
 
-	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	(void)ctx;
 
 	v = vmod_getv(priv);
 	if (!v->db) {
@@ -181,7 +181,7 @@ vmod_delete(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 	struct vmod_leveldb *v;
 	char *error = NULL;
 
-	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	(void)ctx;
 
 	v = vmod_getv(priv);
 	if (!v->db) {
@@ -199,7 +199,8 @@ vmod_delete(const struct vrt_ctx *ctx, struct vmod_priv *priv, VCL_STRING key)
 VCL_VOID __match_proto__(td_leveldb_close)
 vmod_close(const struct vrt_ctx *ctx, struct vmod_priv *priv)
 {
-	CHECK_OBJ_NOTNULL(ctx, VRT_CTX_MAGIC);
+	(void)ctx;
+
 	AN(priv);
 
 	if (priv->priv) {
