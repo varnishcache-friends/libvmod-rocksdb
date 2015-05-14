@@ -4,7 +4,7 @@ compiler:
   - gcc
 before_install:
   - git submodule update --init --recursive
-  - cd leveldb && make libleveldb.so && sudo ldconfig $PWD && cd ..
+  - cd leveldb && make libleveldb.so && sudo ldconfig `pwd` && cd ..
   - sudo apt-get update
   - sudo apt-get install apt-transport-https python-docutils
   - curl -s https://repo.varnish-cache.org/ubuntu/GPG-key.txt |
