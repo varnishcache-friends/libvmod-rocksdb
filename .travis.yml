@@ -4,7 +4,7 @@ compiler:
   - gcc
 before_install:
   - git submodule update --init --recursive
-  - cd leveldb && make libleveldb.so && sudo ldconfig `pwd` && cd ..
+  - cd leveldb && make libleveldb.so && cd ..
   - sudo apt-get update
   - sudo apt-get install apt-transport-https python-docutils
   - curl -s https://repo.varnish-cache.org/ubuntu/GPG-key.txt |
@@ -13,6 +13,7 @@ before_install:
     sudo tee /etc/apt/sources.list.d/varnish-cache.list
   - sudo apt-get update
   - sudo apt-get install varnish libvarnishapi-dev
+  - sudo ldconfig $PWD/leveldb
   - ./autogen.sh
 script:
   - ./configure CPPFLAGS="-I$PWD/leveldb/include" LDFLAGS="-L$PWD/leveldb" &&
