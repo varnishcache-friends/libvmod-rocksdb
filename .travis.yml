@@ -21,5 +21,6 @@ before_install:
 script:
   - ./configure CPPFLAGS="-I$PWD/leveldb/include"
     LDFLAGS="-L$PWD/leveldb/out-shared" &&
-    make CFLAGS="-Wall -Wextra -Werror" VERBOSE=1 distcheck
+    make CFLAGS="-Wall -Wextra -Werror" CPPFLAGS="-I$PWD/leveldb/include"
+    LDFLAGS="-L$PWD/leveldb/out-shared" VERBOSE=1 distcheck
 cache: apt
