@@ -14,7 +14,7 @@ nodist_libvmod_leveldb_la_SOURCES = \
 
 dist_man_MANS = vmod_leveldb.3
 
-VTC_LOG_COMPILER = $(VARNISHTEST) -v -i \
+VTC_LOG_COMPILER = $(VARNISHTEST) -v \
 	-Dvarnishd=$(VARNISHD) -Dvmod_topbuild=$(abs_top_builddir)
 TEST_EXTENSIONS = .vtc
 TESTS = @VMOD_TESTS@
@@ -33,4 +33,5 @@ EXTRA_DIST = vmod.vcc \
 CLEANFILES = $(builddir)/vcc_if.c \
 	$(builddir)/vcc_if.h \
 	$(builddir)/vmod_leveldb.man.rst \
-	$(builddir)/vmod_leveldb.rst
+	$(builddir)/vmod_leveldb.rst \
+	$(builddir)/$(dist_man_MANS)
