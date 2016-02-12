@@ -25,7 +25,7 @@ vcc_if.c vcc_if.h vmod_leveldb.man.rst: $(VMODTOOL) $(top_srcdir)/src/vmod.vcc
 	$(PYTHON) $(VMODTOOL) $(top_srcdir)/src/vmod.vcc
 
 vmod_leveldb.3: vmod_leveldb.man.rst
-	${RST2MAN} $? $@
+	$(RST2MAN) $? $@
 
 EXTRA_DIST = vmod.vcc \
 	$(TESTS)
@@ -35,3 +35,12 @@ CLEANFILES = $(builddir)/vcc_if.c \
 	$(builddir)/vmod_leveldb.man.rst \
 	$(builddir)/vmod_leveldb.rst \
 	$(builddir)/$(dist_man_MANS)
+
+if USE_LCOV
+check-local:
+	$(LCOV) -c -d .libs -o .libs/$(PACKAGE).info
+	$(GENHTML) -o lcov .libs/$(PACKAGE).info
+
+clean-local:
+	rm -rf lcov
+endif
