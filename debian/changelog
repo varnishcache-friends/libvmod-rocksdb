@@ -1,0 +1,5 @@
+libvmod-leveldb (0.1) unstable; urgency=low
+
+  * First version
+
+ -- Ludovic Danigo <ldanigo@efficity.com>  Tue, 21 Mar 2017 17:30:00 +0200

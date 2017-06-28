@@ -1,0 +1,20 @@
+Source: libvmod-leveldb
+Section: web
+Priority: extra
+Maintainer: Varnish Software <support@varnish-software.com>
+Build-Depends: debhelper (>= 9),
+ build-essential,
+ pkg-config,
+ varnish (>= 4.1),
+ varnish-dev (>= 4.1),
+ libleveldb1 (>= 1.18),
+ libleveldb-dev (>= 1.18),
+ libsnappy1 (>= 1.1),
+ libsnappy-dev (>= 1.1)
+Standards-Version: 3.9.6
+Vcs-Git: git://github.com/fgsch/libvmod-leveldb.git
+
+Package: libvmod-leveldb
+Architecture: any
+Depends: varnish (>= 4.1), ${shlibs:Depends}, ${misc:Depends}, ${Varnish:ABI}
+Description: Example vmod for Varnish
