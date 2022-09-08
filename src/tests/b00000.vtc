@@ -1,93 +1,30 @@
-varnishtest "Test leveldb operations"
+varnishtest "Test rocksdb operations"
 
 server s1 {
 	rxreq
-	expect req.url == "/get"
-	expect req.http.r == ""
-	txresp
-
-	rxreq
-	expect req.url == "/put"
-	txresp
-
-	rxreq
-	expect req.url == "/get"
-	expect req.http.r == "bar"
-	txresp
-
-	rxreq
-	expect req.url == "/close"
-	txresp
-
-	rxreq
-	expect req.url == "/get"
-	expect req.http.r == ""
-	txresp
-
-	rxreq
-	expect req.url == "/open"
-	txresp
-
-	rxreq
-	expect req.url == "/get"
-	expect req.http.r == "bar"
-	txresp
-
-	rxreq
-	expect req.url == "/del"
-	txresp
-
-	rxreq
-	expect req.url == "/get"
-	expect req.http.r == ""
-	txresp
-
-	rxreq
-	expect req.url == "/close"
 	txresp
 } -start
 
 varnish v1 -vcl+backend {
-	import leveldb from "${vmod_topbuild}/src/.libs/libvmod_leveldb.so";
+	import rocksdb from "${vmod_topbuild}/src/.libs/libvmod_rocksdb.so";
 
 	sub vcl_init {
-		leveldb.create_if_missing(true);
-		leveldb.open("${tmpdir}/leveldb");
+		new db = rocksdb.rocksdb("${tmpdir}/rocksdb", true);
 	}
 
-	sub vcl_recv {
-		if (req.url ~ "^/open") {
-			leveldb.open("${tmpdir}/leveldb");
-		} else if (req.url ~ "^/get") {
-			set req.http.r = leveldb.get("foo");
-		} else if (req.url ~ "^/put") {
-			leveldb.put("foo", "bar");
-		} else if (req.url ~ "^/del") {
-			leveldb.delete("foo");
-		} else if (req.url ~ "^/close") {
-			leveldb.close();
-		}
-		return (pass);
+	sub vcl_deliver {
+		set resp.http.foo0 = db.get("foo");
+		db.put("foo", "bar");
+		set resp.http.foo1 = db.get("foo");
+		db.delete("foo");
+		set resp.http.foo2 = db.get("foo");
 	}
 } -start
 
 client c1 {
-	txreq -url /get
+	txreq
 	rxresp
-	txreq -url /put
-	rxresp
-	txreq -url /get
-	rxresp
-	txreq -url /close
-	rxresp
-	txreq -url /get
-	rxresp
-	txreq -url /open
-	rxresp
-	txreq -url /get
-	rxresp
-	txreq -url /del
-	rxresp
-	txreq -url /get
-	rxresp
+	expect resp.http.foo0 == ""
+	expect resp.http.foo1 == "bar"
+	expect resp.http.foo2 == ""
 } -run

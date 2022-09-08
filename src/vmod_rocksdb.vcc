@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2015, Federico G. Schwindt <fgsch@lodoss.net>
+# Copyright (c) 2014-2015, 2022 Federico G. Schwindt <fgsch@lodoss.net>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -24,16 +24,48 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-$Module leveldb 3 leveldb
+$Module rocksdb 3 "Varnish RocksDB Module"
 
-$Function VOID open(PRIV_VCL, STRING)
+DESCRIPTION
+===========
 
-$Function STRING get(PRIV_VCL, STRING)
+$Object rocksdb(STRING filename, BOOL create_if_missing=0)
 
-$Function VOID put(PRIV_VCL, STRING, STRING)
+Description
 
-$Function VOID delete(PRIV_VCL, STRING)
+Example
 
-$Function VOID close(PRIV_VCL)
+$Method STRING .get(STRING key)
 
-$Function VOID create_if_missing(PRIV_VCL, BOOL)
+Description
+
+Example
+
+$Method VOID .put(STRING key, STRING value)
+
+Description
+
+Example
+
+$Method VOID .delete(STRING key)
+
+Description
+
+Example
+
+ERRORS
+======
+
+* "rocksdb.rocksdb: %s"
+* "rocksdb.rocksdb: Using rocksdb %s"
+* "rocksdb.get: Invalid or missing key (%s)"
+* "rocksdb.put: Invalid or missing key (%s)"
+* "rocksdb.put: Invalid or missing value (%s)"
+* "rocksdb.delete: Invalid or missing key (%s)"
+
+SEE ALSO
+========
+
+* `varnishlog(1)`
+* `vsl(7)`
+* `RocksDB <https://github.com/facebook/rocksdb/>`

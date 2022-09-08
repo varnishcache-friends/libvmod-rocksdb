@@ -1,4 +1,4 @@
-libvmod-leveldb
+libvmod-rocksdb
 ===============
 
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/fgsch/libvmod-leveldb?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![ci](https://github.com/varnishcache-friends/libvmod-rocksdb/workflows/ci/badge.svg?branch=main)
