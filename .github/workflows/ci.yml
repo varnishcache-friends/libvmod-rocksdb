@@ -24,7 +24,7 @@ jobs:
     - name: prereq
       run: |
         git clone https://github.com/varnishcache/varnish-cache.git
-        cd varnish-cache && ./autogen.sh && ./configure --enable-asan --enable-ubsan && make && sudo make install && sudo ldconfig && cd ..
+        cd varnish-cache && ./autogen.sh && ./configure && make && sudo make install && sudo ldconfig && cd ..
     - name: autogen.sh
       run: ./autogen.sh
     - name: enable gcov
