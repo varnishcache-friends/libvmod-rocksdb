@@ -41,13 +41,13 @@ Description
 
 Example
 
-$Method VOID .put(STRING key, STRING value)
+$Method INT .put(STRING key, STRING value)
 
 Description
 
 Example
 
-$Method VOID .delete(STRING key)
+$Method INT .delete(STRING key)
 
 Description
 
@@ -56,12 +56,15 @@ Example
 ERRORS
 ======
 
+* "rocksdb.delete: %s"
+* "rocksdb.delete: Missing key"
+* "rocksdb.get: %s"
+* "rocksdb.get: Missing key"
+* "rocksdb.put: %s"
+* "rocksdb.put: Missing key"
+* "rocksdb.put: Missing value"
 * "rocksdb.rocksdb: %s"
 * "rocksdb.rocksdb: Using rocksdb %s"
-* "rocksdb.get: Invalid or missing key (%s)"
-* "rocksdb.put: Invalid or missing key (%s)"
-* "rocksdb.put: Invalid or missing value (%s)"
-* "rocksdb.delete: Invalid or missing key (%s)"
 
 SEE ALSO
 ========

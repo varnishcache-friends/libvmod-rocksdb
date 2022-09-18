@@ -135,9 +135,7 @@ vmod_rocksdb_get(VRT_CTX, struct vmod_rocksdb_rocksdb *vp,
 	CHECK_OBJ_NOTNULL(vp, VMOD_ROCKSDB_MAGIC);
 
 	if (!key || !*key) {
-		vslv(ctx, SLT_Error,
-		    "rocksdb.get: Invalid or missing key (%s)",
-		    key ? key : "NULL");
+		vslv(ctx, SLT_Error, "rocksdb.get: Missing key");
 		return NULL;
 	}
 
@@ -145,7 +143,7 @@ vmod_rocksdb_get(VRT_CTX, struct vmod_rocksdb_rocksdb *vp,
 	value = rocksdb_get(vp->db, vp->read_options, key, strlen(key),
 	    &len, &error);
 	if (error) {
-		/* Make the error available */
+		vslv(ctx, SLT_Error, "rocksdb.get: %s", error);
 		free(error);
 		return NULL;
 	}
@@ -159,7 +157,7 @@ vmod_rocksdb_get(VRT_CTX, struct vmod_rocksdb_rocksdb *vp,
 	return p;
 }
 
-VCL_VOID
+VCL_INT
 vmod_rocksdb_put(VRT_CTX, struct vmod_rocksdb_rocksdb *vp,
     VCL_STRING key, VCL_STRING value)
 {
@@ -169,29 +167,28 @@ vmod_rocksdb_put(VRT_CTX, struct vmod_rocksdb_rocksdb *vp,
 	CHECK_OBJ_NOTNULL(vp, VMOD_ROCKSDB_MAGIC);
 
 	if (!key || !*key) {
-		vslv(ctx, SLT_Error,
-		    "rocksdb.put: Invalid or missing key (%s)",
-		    key ? key : "NULL");
-		return;
+		vslv(ctx, SLT_Error, "rocksdb.put: Missing key");
+		return 1;
 	}
 
 	if (!value || !*value) {
-		vslv(ctx, SLT_Error,
-		    "rocksdb.put: Invalid or missing value (%s)",
-		    value ? value : "NULL");
-		return;
+		vslv(ctx, SLT_Error, "rocksdb.put: Missing value");
+		return 1;
 	}
 
 	error = NULL;
 	rocksdb_put(vp->db, vp->write_options, key, strlen(key),
 	    value, strlen(value), &error);
 	if (error) {
-		/* Make the error available */
+		vslv(ctx, SLT_Error, "rocksdb.put: %s", error);
 		free(error);
+		return 1;
 	}
+
+	return 0;
 }
 
-VCL_VOID
+VCL_INT
 vmod_rocksdb_delete(VRT_CTX, struct vmod_rocksdb_rocksdb *vp,
     VCL_STRING key)
 {
@@ -201,17 +198,18 @@ vmod_rocksdb_delete(VRT_CTX, struct vmod_rocksdb_rocksdb *vp,
 	CHECK_OBJ_NOTNULL(vp, VMOD_ROCKSDB_MAGIC);
 
 	if (!key || !*key) {
-		vslv(ctx, SLT_Error,
-		    "rocksdb.delete: Invalid or missing key (%s)",
-		    key ? key : "NULL");
-		return;
+		vslv(ctx, SLT_Error, "rocksdb.delete: Missing key");
+		return 1;
 	}
 
 	error = NULL;
 	rocksdb_delete(vp->db, vp->write_options, key, strlen(key),
 	    &error);
 	if (error) {
-		/* Make the error available */
+		vslv(ctx, SLT_Error, "rocksdb.delete: %s", error);
 		free(error);
+		return 1;
 	}
+
+	return 0;
 }
