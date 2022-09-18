@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include <rocksdb/c.h>
+#include <rocksdb/version.h>
 
 #include "cache/cache.h"
 
@@ -77,8 +78,8 @@ vmod_rocksdb__init(VRT_CTX, struct vmod_rocksdb_rocksdb **vpp,
 	AN(vpp);
 	AZ(*vpp);
 
-	VSL(SLT_Debug, 0, "rocksdb.rocksdb: Using rocksdb %s",
-	    ROCKSDB_VERSION);
+	VSL(SLT_Debug, 0, "rocksdb.rocksdb: Using rocksdb %d.%d.%d",
+	    ROCKSDB_MAJOR, ROCKSDB_MINOR, ROCKSDB_PATCH);
 
 	options = rocksdb_options_create();
 	rocksdb_options_set_create_if_missing(options,

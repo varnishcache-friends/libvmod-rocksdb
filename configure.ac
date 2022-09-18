@@ -23,9 +23,7 @@ AM_CONDITIONAL(USE_LCOV,
   [test x$GENHTML != x && test x$GCOV != x && test x$LCOV != x])
 
 PKG_CHECK_EXISTS([rocksdb], [
-  PKG_CHECK_MODULES([ROCKSDB], [rocksdb])
-  ROCKSDB_VERSION=`$PKG_CONFIG --modversion rocksdb 2>/dev/null`
-  AC_SUBST([ROCKSDB_VERSION])], [
+  PKG_CHECK_MODULES([ROCKSDB], [rocksdb])], [
   AC_SEARCH_LIBS([rocksdb_open], [rocksdb], [],
     AC_MSG_ERROR([rocksdb is required.]))
 ])
