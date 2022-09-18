@@ -1,0 +1,72 @@
+varnishtest "Test error cases"
+
+server s1 -repeat 2 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -arg "-p thread_pools=1" -vcl+backend { } -start
+
+varnish v1 -errvcl "rocksdb.rocksdb: Invalid argument: " {
+	import rocksdb from "${vmod_topbuild}/src/.libs/libvmod_rocksdb.so";
+	backend default {
+		.host = "127.0.0.1";
+	}
+
+	sub vcl_init {
+		new db = rocksdb.rocksdb("${tmpdir}/non-existent");
+	}
+}
+
+varnish v1 -vcl+backend {
+	import rocksdb from "${vmod_topbuild}/src/.libs/libvmod_rocksdb.so";
+	import std;
+
+	sub vcl_init {
+		new db = rocksdb.rocksdb("${tmpdir}/tmp", true);
+	}
+
+	sub vcl_deliver {
+		set resp.http.get-missing-key = db.get("");
+		set resp.http.put-missing-key = db.put("", "value");
+		set resp.http.put-missing-value = db.put("key", "");
+		set resp.http.delete-missing-key = db.delete("");
+	}
+}
+
+logexpect l1 -v v1 -g raw -d 1 {
+	expect * 0	Debug \
+	    "rocksdb.rocksdb: Using rocksdb "
+	expect * =	Error \
+	    "rocksdb.rocksdb: Invalid argument: [^:]*: does not exist \\(create_if_missing is false\\)"
+
+	expect * 1001	Error \
+	    "rocksdb.get: Missing key"
+	expect * =	Error \
+	    "rocksdb.put: Missing key"
+	expect * =	Error \
+	    "rocksdb.put: Missing value"
+	expect * =	Error \
+	    "rocksdb.delete: Missing key"
+} -start
+
+client c1 {
+	txreq
+	rxresp
+	expect resp.http.get-missing-key == ""
+	expect resp.http.put-missing-key == "1"
+	expect resp.http.put-missing-value == "1"
+	expect resp.http.delete-missing-key == "1"
+} -run
+
+logexpect l1 -wait
+
+varnish v1 -vcl+backend { }
+
+client c1 {
+	txreq
+	rxresp
+} -run
+
+varnish v1 -cliok "vcl.discard vcl1"
+varnish v1 -cliok "vcl.discard vcl3"
