@@ -1,0 +1,27 @@
+varnishtest "Test logging from vcl_init{}"
+
+server s1 {
+	rxreq
+	txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import rocksdb from "${vmod_topbuild}/src/.libs/libvmod_rocksdb.so";
+
+	sub vcl_init {
+		new db = rocksdb.rocksdb("${tmpdir}/tmp", true);
+		db.get("");
+	}
+} -start
+
+logexpect l1 -v v1 -g raw -d 1 {
+	expect * 0	Error \
+	    "rocksdb.get: Missing key"
+} -start
+
+client c1 {
+	txreq
+	rxresp
+} -run
+
+logexpect l1 -wait
