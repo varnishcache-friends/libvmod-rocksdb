@@ -13,18 +13,20 @@ varnish v1 -vcl+backend {
 	}
 
 	sub vcl_deliver {
-		set resp.http.foo0 = db.get("foo");
-		db.put("foo", "bar");
-		set resp.http.foo1 = db.get("foo");
-		db.delete("foo");
-		set resp.http.foo2 = db.get("foo");
+		set resp.http.get-0 = db.get("foo");
+		set resp.http.put = db.put("foo", "bar");
+		set resp.http.get-1 = db.get("foo");
+		set resp.http.delete = db.delete("foo");
+		set resp.http.get-2 = db.get("foo");
 	}
 } -start
 
 client c1 {
 	txreq
 	rxresp
-	expect resp.http.foo0 == ""
-	expect resp.http.foo1 == "bar"
-	expect resp.http.foo2 == ""
+	expect resp.http.get-0 == ""
+	expect resp.http.put == "0"
+	expect resp.http.get-1 == "bar"
+	expect resp.http.delete == "0"
+	expect resp.http.get-2 == ""
 } -run
